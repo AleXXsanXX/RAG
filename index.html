@@ -1,20 +1,18 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>RA Geolocalizada - Demo</title>
-
   <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
   <script src="https://cdn.jsdelivr.net/gh/AR-js-org/AR.js@3.4.5/aframe/build/aframe-ar.js"></script>
-
   <style>
     body {
       margin: 0;
       overflow: hidden;
       font-family: Arial, sans-serif;
     }
-
+    
     #info-panel {
       position: fixed;
       top: 10px;
@@ -29,7 +27,23 @@
       max-height: 200px;
       overflow-y: auto;
     }
-
+    
+    #info-panel h3 {
+      margin: 0 0 10px 0;
+      font-size: 16px;
+      color: #4CAF50;
+    }
+    
+    #info-panel p {
+      margin: 5px 0;
+      line-height: 1.4;
+    }
+    
+    .coord {
+      color: #64B5F6;
+      font-weight: bold;
+    }
+    
     #loading {
       position: fixed;
       top: 50%;
@@ -42,149 +56,317 @@
       text-align: center;
       z-index: 1000;
     }
+    
+    .spinner {
+      border: 4px solid rgba(255, 255, 255, 0.3);
+      border-top: 4px solid white;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      animation: spin 1s linear infinite;
+      margin: 20px auto;
+    }
+    
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    
+    #instructions {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(76, 175, 80, 0.9);
+      color: white;
+      padding: 15px 25px;
+      border-radius: 25px;
+      z-index: 999;
+      font-size: 14px;
+      text-align: center;
+      max-width: 80%;
+    }
   </style>
 </head>
-
 <body>
+  <div id="loading">
+    <h2>Iniciando RA Geolocalizada</h2>
+    <div class="spinner"></div>
+    <p>Solicitando permisos de cámara y ubicación...</p>
+  </div>
 
-<div id="loading">
-  <h2>Iniciando RA Geolocalizada</h2>
-  <p>Solicitando permisos de cámara y ubicación...</p>
-</div>
+  <div id="info-panel">
+    <h3>📍 Información de Ubicación</h3>
+    <p><strong>Tu posición:</strong> <span class="coord" id="user-coords">Detectando...</span></p>
+    <p><strong>Precisión GPS:</strong> <span id="accuracy">--</span> metros</p>
+    <p><strong>Puntos cercanos:</strong> <span id="nearby">0</span></p>
+    <p style="margin-top: 10px; font-size: 12px; color: #FFB74D;">
+      💡 Mueve tu dispositivo para ver los objetos AR en diferentes ubicaciones
+    </p>
+  </div>
 
-<div id="info-panel">
-  <h3>📍 Información de Ubicación</h3>
-  <p><strong>Tu posición:</strong> <span id="user-coords">Detectando...</span></p>
-  <p><strong>Precisión GPS:</strong> <span id="accuracy">--</span> m</p>
-  <p><strong>Puntos cercanos:</strong> <span id="nearby">0</span></p>
-</div>
+  <div id="instructions">
+    🎯 Apunta tu cámara alrededor para encontrar objetos virtuales
+  </div>
 
-<a-scene
-  embedded
-  vr-mode-ui="enabled: false"
-  arjs="sourceType: webcam; debugUIEnabled: false;"
-  renderer="logarithmicDepthBuffer: true">
+  <a-scene
+    vr-mode-ui="enabled: false"
+    arjs="sourceType: webcam; videoTexture: true; debugUIEnabled: false; trackingMethod: best;"
+    renderer="logarithmicDepthBuffer: true; precision: medium;"
+    embedded
+    gesture-detector
+    id="scene">
+    
+    <!-- Cámara AR -->
+    <a-camera gps-projected-camera rotation-reader look-controls-enabled="false"></a-camera>
+    
+    <!-- Punto de interés 1: Monumento virtual a 20m al norte -->
+    <a-entity
+      gps-projected-entity-place="latitude: your-lat-here; longitude: your-lon-here;"
+      class="poi">
+      <a-box 
+        position="0 1 -5" 
+        color="#4CAF50" 
+        scale="2 2 2"
+        animation="property: rotation; to: 0 360 0; loop: true; dur: 4000; easing: linear">
+      </a-box>
+      <a-text 
+        value="Punto Norte" 
+        align="center" 
+        position="0 3.5 -5" 
+        scale="3 3 3"
+        color="#FFFFFF"
+        look-at="[gps-projected-camera]">
+      </a-text>
+    </a-entity>
 
-  <!-- Cámara AR estable -->
-  <a-camera gps-camera rotation-reader></a-camera>
+    <!-- Punto de interés 2: Esfera virtual a 20m al sur -->
+    <a-entity
+      gps-projected-entity-place="latitude: your-lat-here; longitude: your-lon-here;"
+      class="poi">
+      <a-sphere 
+        position="0 1.5 -6" 
+        color="#2196F3" 
+        radius="1.5"
+        animation="property: position; to: 0 2.5 0; direction: alternate; loop: true; dur: 2000; easing: easeInOutSine">
+      </a-sphere>
+      <a-text 
+        value="Punto Sur" 
+        align="center" 
+        position="0 4 -6" 
+        scale="3 3 3"
+        color="#FFFFFF"
+        look-at="[gps-projected-camera]">
+      </a-text>
+    </a-entity>
 
-  <!-- Norte -->
-  <a-entity class="poi">
-    <a-box color="#4CAF50" scale="2 2 2"
-      animation="property: rotation; to: 0 360 0; loop: true; dur: 4000">
-    </a-box>
-    <a-text value="Punto Norte" position="0 3 0" scale="3 3 3"
-      look-at="[gps-camera]"></a-text>
-  </a-entity>
+    <!-- Punto de interés 3: Cilindro virtual a 20m al este -->
+    <a-entity
+      gps-projected-entity-place="latitude: your-lat-here; longitude: your-lon-here;"
+      class="poi">
+      <a-cylinder 
+        position="0 1 -6" 
+        color="#FF5722" 
+        radius="1" 
+        height="3"
+        animation="property: scale; to: 1.2 1.2 1.2; direction: alternate; loop: true; dur: 1500">
+      </a-cylinder>
+      <a-text 
+        value="Punto Este" 
+        align="center" 
+        position="0 4 -6" 
+        scale="3 3 3"
+        color="#FFFFFF"
+        look-at="[gps-projected-camera]">
+      </a-text>
+    </a-entity>
 
-  <!-- Sur -->
-  <a-entity class="poi">
-    <a-sphere color="#2196F3" radius="1.5"
-      animation="property: position; to: 0 2 0; dir: alternate; loop: true; dur: 2000">
-    </a-sphere>
-    <a-text value="Punto Sur" position="0 3 0" scale="3 3 3"
-      look-at="[gps-camera]"></a-text>
-  </a-entity>
+    <!-- Punto de interés 4: Cono virtual a 20m al oeste -->
+    <a-entity
+      gps-projected-entity-place="latitude: your-lat-here; longitude: your-lon-here;"
+      class="poi">
+      <a-cone 
+        position="0 1 -6" 
+        color="#9C27B0" 
+        radius-bottom="1.5" 
+        radius-top="0.1" 
+        height="3"
+        animation="property: rotation; to: 360 360 0; loop: true; dur: 5000; easing: linear">
+      </a-cone>
+      <a-text 
+        value="Punto Oeste" 
+        align="center" 
+        position="0 4 -6" 
+        scale="3 3 3"
+        color="#FFFFFF"
+        look-at="[gps-projected-camera]">
+      </a-text>
+    </a-entity>
 
-  <!-- Este -->
-  <a-entity class="poi">
-    <a-cylinder color="#FF5722" height="3" radius="1"
-      animation="property: scale; to: 1.2 1.2 1.2; dir: alternate; loop: true; dur: 1500">
-    </a-cylinder>
-    <a-text value="Punto Este" position="0 4 0" scale="3 3 3"
-      look-at="[gps-camera]"></a-text>
-  </a-entity>
+    <!-- Punto central: Marcador de tu ubicación -->
+    <a-entity
+      gps-projected-entity-place="latitude: your-lat-here; longitude: your-lon-here;"
+      class="poi">
+      <a-torus 
+        position="0 0.5 -32" 
+        color="#FFC107" 
+        radius="1" 
+        radius-tubular="0.2"
+        animation="property: rotation; to: 0 360 0; loop: true; dur: 3000; easing: linear">
+      </a-torus>
+      <a-text 
+        value="Tu Ubicación" 
+        align="center" 
+        position="0 2 -32" 
+        scale="2 2 2"
+        color="#FFFFFF"
+        look-at="[gps-projected-camera]">
+      </a-text>
+    </a-entity>
 
-  <!-- Oeste -->
-  <a-entity class="poi">
-    <a-cone color="#9C27B0" height="3" radius-bottom="1.5"
-      animation="property: rotation; to: 360 360 0; loop: true; dur: 5000">
-    </a-cone>
-    <a-text value="Punto Oeste" position="0 4 0" scale="3 3 3"
-      look-at="[gps-camera]"></a-text>
-  </a-entity>
+  </a-scene>
 
-  <!-- Centro -->
-  <a-entity class="poi">
-    <a-torus color="#FFC107" radius="1" radius-tubular="0.2"
-      animation="property: rotation; to: 0 360 0; loop: true; dur: 3000">
-    </a-torus>
-    <a-text value="Tu Ubicación" position="0 2 0" scale="2 2 2"
-      look-at="[gps-camera]"></a-text>
-  </a-entity>
+  <script>
+    // Variables globales
+    let userLat = null;
+    let userLon = null;
+    let pointsOfInterest = [];
+    let watchId = null;
 
-</a-scene>
-
-<script>
-let watchId;
-
-function calculateDestination(lat, lon, distance, bearing) {
-  const R = 6371000;
-  const d = distance / R;
-  const brng = bearing * Math.PI / 180;
-
-  const lat1 = lat * Math.PI / 180;
-  const lon1 = lon * Math.PI / 180;
-
-  const lat2 = Math.asin(
-    Math.sin(lat1) * Math.cos(d) +
-    Math.cos(lat1) * Math.sin(d) * Math.cos(brng)
-  );
-
-  const lon2 = lon1 + Math.atan2(
-    Math.sin(brng) * Math.sin(d) * Math.cos(lat1),
-    Math.cos(d) - Math.sin(lat1) * Math.sin(lat2)
-  );
-
-  return { lat: lat2 * 180 / Math.PI, lon: lon2 * 180 / Math.PI };
-}
-
-function updatePOIs(lat, lon) {
-  const distance = 3; // 🔥 distancia corta visible
-
-  const positions = [
-    calculateDestination(lat, lon, distance, 0),
-    calculateDestination(lat, lon, distance, 180),
-    calculateDestination(lat, lon, distance, 90),
-    calculateDestination(lat, lon, distance, 270),
-    { lat, lon }
-  ];
-
-  const pois = document.querySelectorAll('.poi');
-  pois.forEach((poi, i) => {
-    poi.setAttribute('gps-entity-place',
-      `latitude: ${positions[i].lat}; longitude: ${positions[i].lon}`);
-  });
-
-  document.getElementById('nearby').textContent = pois.length;
-}
-
-function onLocation(position) {
-  const { latitude, longitude, accuracy } = position.coords;
-
-  document.getElementById('user-coords').textContent =
-    `${latitude.toFixed(6)}, ${longitude.toFixed(6)}`;
-  document.getElementById('accuracy').textContent = accuracy.toFixed(1);
-
-  updatePOIs(latitude, longitude);
-  document.getElementById('loading').style.display = 'none';
-}
-
-window.onload = () => {
-  watchId = navigator.geolocation.watchPosition(onLocation, console.error, {
-    enableHighAccuracy: true
-  });
-};
-
-AFRAME.registerComponent('look-at', {
-  schema: { type: 'selector' },
-  tick: function () {
-    if (this.data) {
-      this.el.object3D.lookAt(this.data.object3D.position);
+    // Función para calcular nueva coordenada dada distancia y bearing
+    function calculateDestination(lat, lon, distance, bearing) {
+      const R = 6371000; // Radio de la Tierra en metros
+      const δ = distance / R;
+      const θ = bearing * Math.PI / 180;
+      
+      const φ1 = lat * Math.PI / 180;
+      const λ1 = lon * Math.PI / 180;
+      
+      const φ2 = Math.asin(
+        Math.sin(φ1) * Math.cos(δ) +
+        Math.cos(φ1) * Math.sin(δ) * Math.cos(θ)
+      );
+      
+      const λ2 = λ1 + Math.atan2(
+        Math.sin(θ) * Math.sin(δ) * Math.cos(φ1),
+        Math.cos(δ) - Math.sin(φ1) * Math.sin(φ2)
+      );
+      
+      return {
+        lat: φ2 * 180 / Math.PI,
+        lon: λ2 * 180 / Math.PI
+      };
     }
-  }
-});
-</script>
 
+    // Función para actualizar coordenadas de los POIs
+    function updatePOICoordinates(lat, lon) {
+      const distance = 20; // 20 metros de distancia
+      
+      // Norte (bearing 0°)
+      const north = calculateDestination(lat, lon, distance, 0);
+      // Sur (bearing 180°)
+      const south = calculateDestination(lat, lon, distance, 180);
+      // Este (bearing 90°)
+      const east = calculateDestination(lat, lon, distance, 90);
+      // Oeste (bearing 270°)
+      const west = calculateDestination(lat, lon, distance, 270);
+      
+      pointsOfInterest = [
+        { name: 'Norte', ...north },
+        { name: 'Sur', ...south },
+        { name: 'Este', ...east },
+        { name: 'Oeste', ...west },
+        { name: 'Centro', lat: lat, lon: lon }
+      ];
+      
+      // Actualizar las entidades en la escena
+      const entities = document.querySelectorAll('[gps-projected-entity-place]');
+      if (entities.length >= 5) {
+        entities[0].setAttribute('gps-projected-entity-place', `latitude: ${north.lat}; longitude: ${north.lon}`);
+        entities[1].setAttribute('gps-projected-entity-place', `latitude: ${south.lat}; longitude: ${south.lon}`);
+        entities[2].setAttribute('gps-projected-entity-place', `latitude: ${east.lat}; longitude: ${east.lon}`);
+        entities[3].setAttribute('gps-projected-entity-place', `latitude: ${west.lat}; longitude: ${west.lon}`);
+        entities[4].setAttribute('gps-projected-entity-place', `latitude: ${lat}; longitude: ${lon}`);
+      }
+      
+      document.getElementById('nearby').textContent = pointsOfInterest.length;
+    }
+
+    // Función para actualizar información en pantalla
+    function updateLocationInfo(position) {
+      userLat = position.coords.latitude;
+      userLon = position.coords.longitude;
+      const accuracy = position.coords.accuracy;
+      
+      document.getElementById('user-coords').textContent = 
+        `${userLat.toFixed(6)}, ${userLon.toFixed(6)}`;
+      document.getElementById('accuracy').textContent = accuracy.toFixed(1);
+      
+      // Actualizar coordenadas de los POIs basados en la ubicación del usuario
+      updatePOICoordinates(userLat, userLon);
+      
+      // Ocultar loading
+      const loading = document.getElementById('loading');
+      if (loading) {
+        loading.style.display = 'none';
+      }
+    }
+
+    // Función de error de geolocalización
+    function handleLocationError(error) {
+      console.error('Error de geolocalización:', error);
+      const loading = document.getElementById('loading');
+      loading.innerHTML = `
+        <h2>⚠️ Error de Ubicación</h2>
+        <p>${error.message}</p>
+        <p style="font-size: 12px; margin-top: 15px;">
+          Por favor, verifica que has dado permisos de ubicación a tu navegador.
+        </p>
+      `;
+    }
+
+    // Inicializar geolocalización
+    window.addEventListener('load', () => {
+      // Verificar si el navegador soporta geolocalización
+      if ('geolocation' in navigator) {
+        // Solicitar ubicación continua
+        watchId = navigator.geolocation.watchPosition(
+          updateLocationInfo,
+          handleLocationError,
+          {
+            enableHighAccuracy: true,
+            maximumAge: 0,
+            timeout: 27000
+          }
+        );
+      } else {
+        document.getElementById('loading').innerHTML = `
+          <h2>❌ No Soportado</h2>
+          <p>Tu navegador no soporta geolocalización</p>
+        `;
+      }
+    });
+
+    // Registrar componente para que los textos siempre miren a la cámara
+    AFRAME.registerComponent('look-at', {
+      schema: { type: 'selector' },
+      init: function() {
+        this.target = this.data || document.querySelector('[camera]');
+      },
+      tick: function() {
+        if (this.target) {
+          this.el.object3D.lookAt(this.target.object3D.position);
+        }
+      }
+    });
+
+    // Limpiar al cerrar
+    window.addEventListener('beforeunload', () => {
+      if (watchId) {
+        navigator.geolocation.clearWatch(watchId);
+      }
+    });
+  </script>
 </body>
 </html>
+
