@@ -94,23 +94,34 @@
 </a-scene>
 
 <script>
-  navigator.geolocation.getCurrentPosition(pos => {
-    const lat = pos.coords.latitude;
-    const lon = pos.coords.longitude;
+navigator.geolocation.getCurrentPosition(pos => {
+  const lat = pos.coords.latitude;
+  const lon = pos.coords.longitude;
 
-    document
-      .querySelectorAll('[gps-entity-place]')
-      .forEach(el => {
-        el.setAttribute(
-          'gps-entity-place',
-          `latitude: ${lat}; longitude: ${lon};`
-        );
-      });
+  const offsets = [
+    { lat:  lat + 0.00002, lon: lon },         // Norte
+    { lat:  lat - 0.00002, lon: lon },         // Sur
+    { lat:  lat,           lon: lon + 0.00002 }, // Este
+    { lat:  lat,           lon: lon - 0.00002 }, // Oeste
+    { lat:  lat,           lon: lon }          // Centro
+  ];
+
+  const entities = document.querySelectorAll('[gps-entity-place]');
+
+  entities.forEach((el, i) => {
+    el.setAttribute(
+      'gps-entity-place',
+      `latitude: ${offsets[i].lat}; longitude: ${offsets[i].lon};`
+    );
   });
+});
 </script>
+
 
 </body>
 </html>
+
+
 
 
 
